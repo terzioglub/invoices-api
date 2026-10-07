@@ -18,7 +18,7 @@ def per_turn: {
 if $chat_id == "" then
   per_turn + {
     harness: "opencode",
-    model: "opencode/glm-5.3",
+    model: "opencode/gpt-6.1-sol",
     system_prompt: $system_prompt,
     prompt: "Review this pull request and post your review."
   }
