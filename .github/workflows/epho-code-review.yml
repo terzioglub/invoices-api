@@ -41,7 +41,7 @@ jobs:
         id: review
         env:
           EPHO_KEY: ${{ secrets.EPHO_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENCODE_KEY: ${{ secrets.OPENCODE_KEY }}
         run: |
           set -euo pipefail
           CTX="$RUNNER_TEMP/ctx"

@@ -10,7 +10,7 @@ def process_env: {
 } | with_entries(select((.value // "") != ""));
 
 def per_turn: {
-  provider_api_key: env.OPENAI_API_KEY,
+  provider_api_key: env.OPENCODE_KEY,
   repos: [ { url: "https://github.com/\(env.GH_REPO)", branch: env.HEAD_REF, token: env.GH_TOKEN } ],
   process_env: process_env
 };
@@ -18,7 +18,7 @@ def per_turn: {
 if $chat_id == "" then
   per_turn + {
     harness: "opencode",
-    model: "openai/gpt-5.6-terra",
+    model: "opencode/glm-5.3",
     system_prompt: $system_prompt,
     prompt: "Review this pull request and post your review."
   }
