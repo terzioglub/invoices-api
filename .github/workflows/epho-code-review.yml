@@ -1,0 +1,107 @@
+name: epho · code review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: epho-review-${{ github.repository_id }}-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      BASE_REF: ${{ github.event.pull_request.base.ref }}
+      BEFORE_SHA: ${{ github.event.before }}
+      CHAT_CACHE_PREFIX: epho-chat-${{ github.repository_id }}-pr-${{ github.event.pull_request.number }}-
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Find this PR's epho chat
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/epho-chat
+          key: ${{ env.CHAT_CACHE_PREFIX }}${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ env.CHAT_CACHE_PREFIX }}
+
+      - name: Review this PR with epho
+        id: review
+        env:
+          EPHO_KEY: ${{ secrets.EPHO_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          CTX="$RUNNER_TEMP/ctx"
+          mkdir -p "$CTX"
+          CHAT_FILE="$RUNNER_TEMP/epho-chat/chat_id"
+
+          run_turn() {
+            jq -n \
+              --arg chat_id "$1" \
+              --rawfile system_prompt .github/epho-review/system-prompt.md \
+              --rawfile follow_up     .github/epho-review/follow-up.md \
+              -f .github/epho-review/request.jq > "$CTX/request.json"
+
+            curl -sS -N https://app.epho.io/api/v1/chat \
+              -H "Authorization: Bearer $EPHO_KEY" \
+              -H "Content-Type: application/json" \
+              -d @"$CTX/request.json" > "$CTX/stream.txt" || true
+
+            CHAT_ID=$(grep -o '"chat_id":"[^"]*"' "$CTX/stream.txt" | head -1 | cut -d'"' -f4 || true)
+            STATUS=$(grep -o '"type":"done","status":"[a-z_]*"' "$CTX/stream.txt" | tail -1 | cut -d'"' -f8 || true)
+
+            if [ -n "$CHAT_ID" ] && [ -z "$STATUS" ]; then
+              echo "Stream ended before the turn finished; waiting for chat $CHAT_ID"
+              for _ in $(seq 1 180); do
+                STATUS=$(curl -sS "https://app.epho.io/api/v1/chat/$CHAT_ID/response" \
+                  -H "Authorization: Bearer $EPHO_KEY" | jq -r '.turns[-1].status // empty' || true)
+                case "$STATUS" in completed|failed|canceled|timed_out) break ;; esac
+                sleep 20
+              done
+            fi
+            echo "epho chat: ${CHAT_ID:-none} · status: ${STATUS:-none}"
+          }
+
+          PREVIOUS_CHAT=$(cat "$CHAT_FILE" 2>/dev/null || true)
+          CHAT_ID="" STATUS=""
+          if [ -n "$PREVIOUS_CHAT" ]; then
+            echo "Continuing chat $PREVIOUS_CHAT"
+            run_turn "$PREVIOUS_CHAT"
+          fi
+          if [ "$STATUS" != "completed" ]; then
+            if [ -n "$PREVIOUS_CHAT" ]; then
+              echo "::warning::Could not continue chat $PREVIOUS_CHAT; starting a new one."
+            fi
+            run_turn ""
+          fi
+
+          if [ "$STATUS" != "completed" ]; then
+            echo "::error::epho review run ended as '${STATUS:-no status}'."
+            exit 1
+          fi
+
+          if [ "$CHAT_ID" != "$PREVIOUS_CHAT" ]; then
+            mkdir -p "$(dirname "$CHAT_FILE")"
+            echo "$CHAT_ID" > "$CHAT_FILE"
+            echo "new_chat=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Remember this PR's epho chat
+        if: steps.review.outputs.new_chat == 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/epho-chat
+          key: ${{ env.CHAT_CACHE_PREFIX }}${{ github.run_id }}-${{ github.run_attempt }}
