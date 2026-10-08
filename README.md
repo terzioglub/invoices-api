@@ -8,7 +8,6 @@ REST API for a small invoicing app: customers, invoices and line items on Postgr
 cp .env.example .env   # set DATABASE_URL
 npm install
 npm run db:migrate     # applies supabase/migrations
-npm run db:seed        # loads supabase/seed.sql into an empty database
 npm run dev            # http://localhost:3001
 ```
 
