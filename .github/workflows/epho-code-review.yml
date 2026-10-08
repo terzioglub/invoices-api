@@ -42,6 +42,10 @@ jobs:
         env:
           EPHO_KEY: ${{ secrets.EPHO_API_KEY }}
           OPENCODE_KEY: ${{ secrets.OPENCODE_KEY }}
+          WEB_REPO: ${{ github.repository_owner }}/invoices-web
+          WEB_REPO_TOKEN: ${{ secrets.PAT_KEY_REPOS }}
+          SUPABASE_MCP_URL: ${{ secrets.SUPABASE_MCP_URL }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
           CTX="$RUNNER_TEMP/ctx"
