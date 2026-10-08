@@ -38,7 +38,7 @@ export interface InvoiceRow {
   customer_name: string;
   status: InvoiceStatus;
   currency: string | null;
-  amount: string;
+  amount_cents: string;
   issued_at: Date | string;
   due_date: Date | string;
   paid_at: Date | null;
@@ -52,7 +52,7 @@ export function toInvoiceDto(row: InvoiceRow) {
     customer_name: row.customer_name,
     status: row.status,
     currency: row.currency,
-    amount: Number(row.amount),
+    amount_cents: Number(row.amount_cents),
     issued_at: toDateString(row.issued_at),
     due_date: toDateString(row.due_date),
     paid_at: toTimestamp(row.paid_at),
