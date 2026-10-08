@@ -38,7 +38,7 @@ export const customers = new Hono()
 
     const invoices = await sql<InvoiceRow[]>`
       select i.id, i.number, i.customer_id, ${customer.name} as customer_name, i.status, i.currency,
-             i.amount, i.issued_at, i.due_date, i.paid_at
+             i.amount_cents, i.issued_at, i.due_date, i.paid_at
       from invoices i
       where i.customer_id = ${id}
       order by i.issued_at desc, i.id desc
