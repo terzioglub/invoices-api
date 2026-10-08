@@ -26,4 +26,10 @@ npm run dev            # http://localhost:3001
 
 ## Code review
 
-Every pull request is reviewed by an agent running on [epho](https://epho.io). The workflow is `.github/workflows/epho-code-review.yml` and the reviewer's instructions are in `.github/epho-review/`. Changing how this repo gets reviewed is a pull request like any other.
+Every pull request is reviewed by an agent running on [epho](https://epho.io). Everything it knows is in `.github/epho-review/`:
+
+- `system-prompt.md`: how to review and post, with the generic code review and security checks. Nothing in it is specific to this repo, so it can be copied as is.
+- `skills/`: what this team knows. `migrations` and `api-change` check a change against production data and against invoices-web; `amount-cents-rollout` and `invoice-lifecycle` hold the rules for two areas of the code.
+- `request.jq`: what the agent gets: this repo, invoices-web, read-only production data through the Supabase MCP server, and the skills.
+
+The workflow reads the prompt and skills from the base branch, so a pull request can't change the rules it's reviewed by. `.github/CODEOWNERS` says who approves changes to them.
