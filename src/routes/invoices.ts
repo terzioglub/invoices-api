@@ -75,6 +75,27 @@ export const invoices = new Hono()
     return c.json(paginated(rows.map(toInvoiceDto), query, count?.total ?? 0));
   })
 
+  .get("/overdue", zValidator("query", pageQuery), async (c) => {
+    const query = c.req.valid("query");
+    const [rows, [count]] = await Promise.all([
+      sql<InvoiceRow[]>`
+        select i.id, i.number, i.customer_id, c.name as customer_name, i.status, i.currency,
+               i.amount, i.issued_at, i.due_date, i.paid_at
+        from invoices i
+        join customers c on c.id = i.customer_id
+        where i.paid_at is null and i.due_date < current_date
+        order by i.due_date asc, i.id asc
+        limit ${query.limit} offset ${offsetFor(query)}
+      `,
+      sql<{ total: number }[]>`
+        select count(*)::int as total
+        from invoices i
+        where i.paid_at is null and i.due_date < current_date
+      `,
+    ]);
+    return c.json(paginated(rows.map(toInvoiceDto), query, count?.total ?? 0));
+  })
+
   .get("/:id", zValidator("param", idParam), async (c) => {
     const { id } = c.req.valid("param");
     const invoice = await findInvoice(id);
