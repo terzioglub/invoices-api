@@ -3,14 +3,17 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { sql } from "../db.js";
 import { toCustomerDto, type CustomerRow } from "../lib/customers.js";
+import { isUniqueViolation } from "../lib/db-errors.js";
 import { toInvoiceDto, type InvoiceRow } from "../lib/invoices.js";
 import { offsetFor, pageQuery, paginated } from "../lib/pagination.js";
 
 const idParam = z.object({ id: z.coerce.number().int().positive() });
 
+const emailTaken = { error: "a customer with this email already exists" } as const;
+
 const customerBody = z.object({
   name: z.string().trim().min(1),
-  email: z.email(),
+  email: z.email().transform((email) => email.toLowerCase()),
   company: z.string().trim().min(1).nullish(),
 });
 
@@ -48,25 +51,35 @@ export const customers = new Hono()
 
   .post("/", zValidator("json", customerBody), async (c) => {
     const body = c.req.valid("json");
-    const [customer] = await sql<CustomerRow[]>`
-      insert into customers (name, email, company)
-      values (${body.name}, ${body.email}, ${body.company ?? null})
-      returning id, name, email, company, created_at
-    `;
-    return c.json(toCustomerDto(customer!), 201);
+    try {
+      const [customer] = await sql<CustomerRow[]>`
+        insert into customers (name, email, company)
+        values (${body.name}, ${body.email}, ${body.company ?? null})
+        returning id, name, email, company, created_at
+      `;
+      return c.json(toCustomerDto(customer!), 201);
+    } catch (err) {
+      if (isUniqueViolation(err)) return c.json(emailTaken, 409);
+      throw err;
+    }
   })
 
   .patch("/:id", zValidator("param", idParam), zValidator("json", customerBody.partial()), async (c) => {
     const { id } = c.req.valid("param");
     const body = c.req.valid("json");
-    const [customer] = await sql<CustomerRow[]>`
-      update customers set
-        name = coalesce(${body.name ?? null}, name),
-        email = coalesce(${body.email ?? null}, email),
-        company = case when ${body.company !== undefined} then ${body.company ?? null} else company end
-      where id = ${id}
-      returning id, name, email, company, created_at
-    `;
-    if (!customer) return c.json({ error: "customer not found" }, 404);
-    return c.json(toCustomerDto(customer));
+    try {
+      const [customer] = await sql<CustomerRow[]>`
+        update customers set
+          name = coalesce(${body.name ?? null}, name),
+          email = coalesce(${body.email ?? null}, email),
+          company = case when ${body.company !== undefined} then ${body.company ?? null} else company end
+        where id = ${id}
+        returning id, name, email, company, created_at
+      `;
+      if (!customer) return c.json({ error: "customer not found" }, 404);
+      return c.json(toCustomerDto(customer));
+    } catch (err) {
+      if (isUniqueViolation(err)) return c.json(emailTaken, 409);
+      throw err;
+    }
   });
