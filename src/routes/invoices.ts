@@ -7,6 +7,7 @@ import {
   currencies,
   invoiceStatuses,
   invoiceTotal,
+  toCents,
   toInvoiceDto,
   toLineItemDto,
   type InvoiceRow,
@@ -93,10 +94,11 @@ export const invoices = new Hono()
     const [customer] = await sql`select id from customers where id = ${body.customer_id}`;
     if (!customer) return c.json({ error: "customer not found" }, 422);
 
+    const amount = invoiceTotal(body.line_items);
     const id = await sql.begin(async (tx) => {
       const [invoice] = await tx<{ id: string }[]>`
-        insert into invoices (customer_id, currency, amount, issued_at, due_date)
-        values (${body.customer_id}, ${body.currency}, ${invoiceTotal(body.line_items)},
+        insert into invoices (customer_id, currency, amount, amount_cents, issued_at, due_date)
+        values (${body.customer_id}, ${body.currency}, ${amount}, ${toCents(amount)},
                 coalesce(${body.issued_at ?? null}::date, current_date), ${body.due_date})
         returning id
       `;

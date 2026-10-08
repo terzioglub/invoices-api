@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canTransition, invoiceTotal, toInvoiceDto, toLineItemDto } from "../src/lib/invoices.js";
+import { canTransition, invoiceTotal, toCents, toInvoiceDto, toLineItemDto } from "../src/lib/invoices.js";
 
 describe("invoiceTotal", () => {
   it("sums quantity times unit price", () => {
@@ -13,6 +13,13 @@ describe("invoiceTotal", () => {
 
   it("rounds to cents", () => {
     expect(invoiceTotal([{ description: "API requests (per 1k)", quantity: 3, unit_price: 0.1 }])).toBe(0.3);
+  });
+});
+
+describe("toCents", () => {
+  it("converts an amount to whole cents", () => {
+    expect(toCents(1849.99)).toBe(184999);
+    expect(toCents(0.3)).toBe(30);
   });
 });
 

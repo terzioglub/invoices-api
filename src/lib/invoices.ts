@@ -27,6 +27,10 @@ export function invoiceTotal(items: LineItemInput[]): number {
   return Math.round(total * 100) / 100;
 }
 
+export function toCents(amount: number): number {
+  return Math.round(amount * 100);
+}
+
 export interface InvoiceRow {
   id: string;
   number: string;
