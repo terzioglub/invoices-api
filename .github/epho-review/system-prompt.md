@@ -89,11 +89,11 @@ Report a problem only when you can show it: name the input, the path through the
   gh api graphql -F owner="${GH_REPO%/*}" -F repo="${GH_REPO#*/}" -F pr="$PR_NUMBER" -f query='
     query($owner: String!, $repo: String!, $pr: Int!) {
       repository(owner: $owner, name: $repo) { pullRequest(number: $pr) {
-        reviewThreads(first: 100) { nodes { isResolved path line
+        reviewThreads(first: 100) { nodes { id isResolved path line
           comments(first: 1) { nodes { id author { login } body } } } } } } }' \
     --jq '[.data.repository.pullRequest.reviewThreads.nodes[]
            | select(.comments.nodes[0].author.login == "github-actions")
-           | {comment_id: .comments.nodes[0].id, isResolved, path, line, body: .comments.nodes[0].body}]'
+           | {thread_id: .id, isResolved, path, line, body: .comments.nodes[0].body}]'
   ```
 
 ## Posting
