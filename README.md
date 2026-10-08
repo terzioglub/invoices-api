@@ -19,7 +19,7 @@ npm run dev            # http://localhost:3001
 | GET | `/customers/:id` | customer with their invoices |
 | POST | `/customers` | `{ name, email, company? }` |
 | PATCH | `/customers/:id` | update name, email or company |
-| GET | `/invoices?page&limit&status&customer_id` | list invoices |
+| GET | `/invoices?page&limit&status&customer_id&q` | list invoices; `q` searches invoice number and customer name |
 | GET | `/invoices/:id` | invoice with line items |
 | POST | `/invoices` | `{ customer_id, currency, due_date, issued_at?, line_items: [{ description, quantity, unit_price }] }` |
 | PATCH | `/invoices/:id` | `{ status }`: draft → sent → paid, or void |
