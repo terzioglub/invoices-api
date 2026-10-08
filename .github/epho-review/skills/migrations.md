@@ -16,6 +16,7 @@ The diff shows what a migration does. Production data decides if it works. Do no
 ## Rules
 
 - Do not run the migration. Make the same check with a SELECT.
+- A migration that fails on production data, or writes wrong values to it, is P0.
 - A merged migration must not change. A change goes in a new migration.
 - Expand, then contract. Do not drop or rename a column in the same pull request that stops reading it.
 - A backfill must give the correct value for every existing row, not only for the usual rows.
