@@ -14,12 +14,14 @@ import {
   type LineItemRow,
 } from "../lib/invoices.js";
 import { offsetFor, pageQuery, paginated } from "../lib/pagination.js";
+import { containsPattern } from "../lib/search.js";
 
 const idParam = z.object({ id: z.coerce.number().int().positive() });
 
 const listQuery = pageQuery.extend({
   status: z.enum(invoiceStatuses).optional(),
   customer_id: z.coerce.number().int().positive().optional(),
+  q: z.string().trim().min(1).max(100).optional(),
 });
 
 const createBody = z.object({
@@ -56,9 +58,11 @@ export const invoices = new Hono()
     const query = c.req.valid("query");
     const status = query.status ?? null;
     const customerId = query.customer_id ?? null;
+    const pattern = query.q ? containsPattern(query.q) : null;
     const where = sql`
       where (${status}::text is null or i.status = ${status})
         and (${customerId}::bigint is null or i.customer_id = ${customerId})
+        and (${pattern}::text is null or i.number ilike ${pattern} or c.name ilike ${pattern})
     `;
     const [rows, [count]] = await Promise.all([
       sql<InvoiceRow[]>`
@@ -70,7 +74,12 @@ export const invoices = new Hono()
         order by i.issued_at desc, i.id desc
         limit ${query.limit} offset ${offsetFor(query)}
       `,
-      sql<{ total: number }[]>`select count(*)::int as total from invoices i ${where}`,
+      sql<{ total: number }[]>`
+        select count(*)::int as total
+        from invoices i
+        join customers c on c.id = i.customer_id
+        ${where}
+      `,
     ]);
     return c.json(paginated(rows.map(toInvoiceDto), query, count?.total ?? 0));
   })
