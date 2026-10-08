@@ -21,6 +21,7 @@ npm run dev            # http://localhost:3001
 | POST | `/customers` | `{ name, email, company? }` |
 | PATCH | `/customers/:id` | update name, email or company |
 | GET | `/invoices?page&limit&status&customer_id` | list invoices |
+| GET | `/invoices/overdue?page&limit` | unpaid invoices past their due date, oldest first |
 | GET | `/invoices/:id` | invoice with line items |
 | POST | `/invoices` | `{ customer_id, currency, due_date, issued_at?, line_items: [{ description, quantity, unit_price }] }` |
 | PATCH | `/invoices/:id` | `{ status }`: draft → sent → paid, or void |
