@@ -43,7 +43,7 @@ const statusBody = z.object({ status: z.enum(invoiceStatuses) });
 async function findInvoice(id: number) {
   const [row] = await sql<InvoiceRow[]>`
     select i.id, i.number, i.customer_id, c.name as customer_name, i.status, i.currency,
-           i.amount, i.issued_at, i.due_date, i.paid_at
+           i.amount_cents, i.issued_at, i.due_date, i.paid_at
     from invoices i
     join customers c on c.id = i.customer_id
     where i.id = ${id}
@@ -63,7 +63,7 @@ export const invoices = new Hono()
     const [rows, [count]] = await Promise.all([
       sql<InvoiceRow[]>`
         select i.id, i.number, i.customer_id, c.name as customer_name, i.status, i.currency,
-               i.amount, i.issued_at, i.due_date, i.paid_at
+               i.amount_cents, i.issued_at, i.due_date, i.paid_at
         from invoices i
         join customers c on c.id = i.customer_id
         ${where}
