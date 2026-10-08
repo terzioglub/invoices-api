@@ -20,6 +20,7 @@ if $chat_id == "" then
     harness: "opencode",
     model: "opencode/gpt-6.1-sol",
     system_prompt: $system_prompt,
+    skills: $skills[0],
     prompt: "Review this pull request and post your review."
   }
 else

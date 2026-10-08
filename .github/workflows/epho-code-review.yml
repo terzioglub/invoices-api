@@ -24,11 +24,11 @@ jobs:
       HEAD_REF: ${{ github.event.pull_request.head.ref }}
       BASE_REF: ${{ github.event.pull_request.base.ref }}
       BEFORE_SHA: ${{ github.event.before }}
-      CHAT_CACHE_PREFIX: epho-chat-${{ github.repository_id }}-pr-${{ github.event.pull_request.number }}-
+      CHAT_CACHE_PREFIX: epho-chat-v2-${{ github.repository_id }}-pr-${{ github.event.pull_request.number }}-
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.base.sha }}
 
       - name: Find this PR's epho chat
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
@@ -48,9 +48,15 @@ jobs:
           mkdir -p "$CTX"
           CHAT_FILE="$RUNNER_TEMP/epho-chat/chat_id"
 
+          shopt -s nullglob
+          for f in .github/epho-review/skills/*.md; do
+            jq -n --arg name "$(basename "$f" .md)" --rawfile content "$f" '{name: $name, content: $content}'
+          done | jq -s . > "$CTX/skills.json"
+
           run_turn() {
             jq -n \
               --arg chat_id "$1" \
+              --slurpfile skills "$CTX/skills.json" \
               --rawfile system_prompt .github/epho-review/system-prompt.md \
               --rawfile follow_up     .github/epho-review/follow-up.md \
               -f .github/epho-review/request.jq > "$CTX/request.json"
