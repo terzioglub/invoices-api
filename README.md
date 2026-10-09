@@ -111,7 +111,7 @@ npm run db:migrate     # applies supabase/migrations
 npm run dev            # http://localhost:3001
 ```
 
-The planted data is not in this repo, so a fresh database starts empty.
+The planted data is not on `main`, so a fresh database starts empty. The script that made it is still in the git history (removed in `b5fc773`, see run 1 above).
 
 ## Endpoints
 
