@@ -129,3 +129,7 @@ The planted data is not on `main`, so a fresh database starts empty. The script 
 ## Status
 
 The experiment is finished. The review workflow is turned off, and this repo does not accept pull requests.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
