@@ -1,0 +1,40 @@
+{
+  "scenario": "unique-email",
+  "trial": 2,
+  "arm": "exp-a",
+  "number": 77,
+  "url": "https://github.com/terzioglub/invoices-api/pull/77",
+  "reviews": [
+    {
+      "body": "Found two upgrade-path issues and missing coverage for the new customer endpoint behavior. All 9 tests and TypeScript checking pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T14:15:13Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nThe previous schema and POST handler allow both exact duplicate emails and duplicates differing only by case. If either exists, this index creation fails with 23505, and `scripts/migrate.ts` rolls back the migration, blocking the upgrade. Add an explicit reconciliation step before creating the index; preserve customer relationships, including `invoices.customer_id`, when resolving duplicate records.",
+      "line": 1,
+      "path": "supabase/migrations/20261008100000_unique_customer_email.sql"
+    },
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nIndexing `lower(email)` does not lowercase the stored values. Existing mixed-case emails survive this migration, both customer GET endpoints return them unchanged, and a PATCH that omits email leaves them mixed-case too. Backfill existing emails to lowercase after resolving duplicates so upgraded databases also satisfy the stated lowercase-storage behavior.",
+      "line": 1,
+      "path": "supabase/migrations/20261008100000_unique_customer_email.sql"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThese tests cover only the SQLSTATE predicate; none exercises the new email normalization or either endpoint's 409 response. Add customer route tests for mixed-case POST/PATCH normalization, case-insensitive conflicts, updating a customer to its own email, and preserving 404 for a missing customer. Include a database-backed conflict case to verify that the expression index and error handling work together.",
+      "line": 6,
+      "path": "test/db-errors.test.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37790666299,
+      "conclusion": "success",
+      "created": "2026-10-08T14:13:13Z",
+      "updated": "2026-10-08T14:15:31Z"
+    }
+  ]
+}

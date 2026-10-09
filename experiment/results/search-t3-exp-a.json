@@ -1,0 +1,30 @@
+{
+  "scenario": "search",
+  "trial": 3,
+  "arm": "exp-a",
+  "number": 62,
+  "url": "https://github.com/terzioglub/invoices-api/pull/62",
+  "reviews": [
+    {
+      "body": "One P2 finding: the new endpoint filtering and filtered pagination total lack test coverage. All nine existing tests and TypeScript typechecking pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:55:26Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nAdd endpoint-level tests for the search predicate and filtered total. The new tests only check `containsPattern`'s output; they still pass if this predicate is removed or the count query stops applying it. Cover case-insensitive partial matches on both invoice number and customer name, literal wildcard matching against Postgres, combining `q` with the existing filters, and a paginated result whose `total` counts all matching invoices.",
+      "line": 65,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37787982240,
+      "conclusion": "success",
+      "created": "2026-10-08T13:53:35Z",
+      "updated": "2026-10-08T13:55:49Z"
+    }
+  ]
+}

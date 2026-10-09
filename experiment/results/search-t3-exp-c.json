@@ -1,0 +1,30 @@
+{
+  "scenario": "search",
+  "trial": 3,
+  "arm": "exp-c",
+  "number": 64,
+  "url": "https://github.com/terzioglub/invoices-api/pull/64",
+  "reviews": [
+    {
+      "body": "Found one P2 test-coverage gap in the search endpoint. All 9 existing tests and typechecking pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:55:41Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new endpoint behavior has no test coverage: `test/search.test.ts` only checks the string returned by `containsPattern`. Those tests still pass if either search branch is removed or the count query stops applying the filter. Add endpoint tests with database fixtures covering case-insensitive partial matches on both fields, literal wildcard matching, combined filters, and a multi-page result whose `total` stays consistent.",
+      "line": 65,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37787995498,
+      "conclusion": "success",
+      "created": "2026-10-08T13:53:41Z",
+      "updated": "2026-10-08T13:56:36Z"
+    }
+  ]
+}

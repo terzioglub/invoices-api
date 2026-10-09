@@ -1,0 +1,40 @@
+{
+  "scenario": "unique-email",
+  "trial": 3,
+  "arm": "exp-c",
+  "number": 82,
+  "url": "https://github.com/terzioglub/invoices-api/pull/82",
+  "reviews": [
+    {
+      "body": "Found a production migration blocker, an unhandled conflict in the web client, and missing customer-route test coverage. Production contains 37 case-insensitive duplicate email groups across 74 customer rows; typechecking and all 9 existing tests pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T14:19:02Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nThis index cannot be created on production: a read-only check found **37 duplicate `lower(email)` groups covering 74 customer rows**, all with case variants. `db:migrate` will fail and roll back this migration. Add an explicit duplicate-resolution step that preserves customer/invoice relationships before building the index; lowercasing the existing emails alone will not remove the collisions.\n\nReproduce the check:\n```sql\nselect count(*) as groups, coalesce(sum(n), 0) as rows\nfrom (\n  select lower(email), count(*) as n\n  from public.customers\n  group by lower(email)\n  having count(*) > 1\n) d;\n```",
+      "line": 1,
+      "path": "supabase/migrations/20261008100000_unique_customer_email.sql"
+    },
+    {
+      "body": "🟠 **P1** · ⚠️ **Error handling**\n\nSubmitting an existing email through invoices-web now produces an uncaught server-action error. `invoices-web/lib/api.ts:78–81` throws `ApiError` for this 409, `app/customers/actions.ts:9–13` lets it escape, and `app/customers/new/page.tsx:9–23` has no form error state. The user gets an application error instead of an email-conflict message they can correct. Link and ship a companion web PR that catches status 409 and displays the conflict in the form before or alongside this API change.",
+      "line": 62,
+      "path": "src/routes/customers.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new tests only check SQLSTATE detection; neither changed customer route nor email normalization is covered. Add route tests for lower-case persistence on POST/PATCH, a case-insensitive duplicate returning the documented 409 body, updating a customer's email to its own case variant succeeding, and unrelated database errors still reaching the 500 handler. These exercise the new behavior rather than just its helper.",
+      "line": 5,
+      "path": "test/db-errors.test.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37791165205,
+      "conclusion": "success",
+      "created": "2026-10-08T14:16:55Z",
+      "updated": "2026-10-08T14:19:20Z"
+    }
+  ]
+}

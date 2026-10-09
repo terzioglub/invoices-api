@@ -1,0 +1,35 @@
+{
+  "scenario": "unique-email",
+  "trial": 2,
+  "arm": "exp-b",
+  "number": 78,
+  "url": "https://github.com/terzioglub/invoices-api/pull/78",
+  "reviews": [
+    {
+      "body": "The migration is blocked by existing case-insensitive duplicate emails, and the new customer-route behavior lacks test coverage. All 9 existing tests and the TypeScript check pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T14:15:16Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nThe connected database already contains 37 duplicate `lower(email)` groups covering 74 customers, so this statement fails with a unique violation and `npm run db:migrate` rolls back without installing the constraint. Those customers have 378 linked invoices. Resolve the existing collisions before creating the index, preserving invoice/customer relationships and normalizing the retained emails.",
+      "line": 1,
+      "path": "supabase/migrations/20261008100000_unique_customer_email.sql"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe added tests only exercise `isUniqueViolation`; neither customer route nor email normalization is covered. Add route/database tests for mixed-case duplicate emails on POST and PATCH, lowercase storage, updating a customer to its own email, and unrelated database errors remaining 500 responses. The current suite would still pass if the 409 handlers or normalization were removed.",
+      "line": 62,
+      "path": "src/routes/customers.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37790677454,
+      "conclusion": "success",
+      "created": "2026-10-08T14:13:18Z",
+      "updated": "2026-10-08T14:15:33Z"
+    }
+  ]
+}

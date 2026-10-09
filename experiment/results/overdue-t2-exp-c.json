@@ -1,0 +1,35 @@
+{
+  "scenario": "overdue",
+  "trial": 2,
+  "arm": "exp-c",
+  "number": 55,
+  "url": "https://github.com/terzioglub/invoices-api/pull/55",
+  "reviews": [
+    {
+      "body": "The overdue query selects paid, void, and draft invoices, so the reminder job will target invoices that are not collectible. The new endpoint also has no test coverage; typechecking and the seven existing helper tests pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:47:04Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\n`paid_at is null` does not mean an invoice is unpaid: paid invoices from before the column was added have no timestamp, and draft/void invoices also keep it null. Running this predicate on production returns 2,056 paid, 636 void, and 14 draft invoices alongside 465 sent invoices; the first page contains 24 paid invoices and one void invoice. The reminder job will therefore send payment demands for settled, canceled, and unsent invoices. Filter explicitly with `i.status = 'sent'` and `i.due_date < current_date` in both the row query and the count query.",
+      "line": 86,
+      "path": "src/routes/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new endpoint has no tests: all seven existing tests exercise helpers, so they pass even when the reminder selection includes paid, void, and draft invoices. Add endpoint/query tests covering all four statuses (including a historical paid invoice with null `paid_at`), yesterday versus today, and pagination with matching totals and deterministic oldest-first ordering. This selection determines who receives a payment reminder.",
+      "line": 78,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37786846179,
+      "conclusion": "success",
+      "created": "2026-10-08T13:45:09Z",
+      "updated": "2026-10-08T13:47:18Z"
+    }
+  ]
+}

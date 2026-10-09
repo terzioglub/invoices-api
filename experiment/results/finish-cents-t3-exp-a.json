@@ -1,0 +1,35 @@
+{
+  "scenario": "finish-cents",
+  "trial": 3,
+  "arm": "exp-a",
+  "number": 71,
+  "url": "https://github.com/terzioglub/invoices-api/pull/71",
+  "reviews": [
+    {
+      "body": "Found a correctness issue in the legacy backfill and missing migration coverage. All seven existing tests and typechecking pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T14:00:07Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nRecomputing from line items can change historical invoice totals. The API accepts fractional-cent prices and calculates `amount` before PostgreSQL rounds `unit_price` to `numeric(12,2)`: quantity 3 at 0.335 produces `amount = 1.01` but stores `unit_price = 0.34`, so this backfill exposes 102 cents instead of 101. An invoice with no line items also becomes zero regardless of its recorded amount. Backfill from `round(i.amount * 100)::bigint` to preserve the existing total when switching responses to cents.",
+      "line": 3,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nNo test executes this migration; the changed test only checks DTO serialization. Add a migration regression test with legacy NULL cents values, invoices without line items, and already-populated cents values. Verify that historical totals are preserved, populated values remain unchanged, and the NOT NULL constraint is applied successfully.",
+      "line": 9,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37788520574,
+      "conclusion": "success",
+      "created": "2026-10-08T13:57:33Z",
+      "updated": "2026-10-08T14:00:27Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "scenario": "overdue",
+  "trial": 3,
+  "arm": "exp-a",
+  "number": 65,
+  "url": "https://github.com/terzioglub/invoices-api/pull/65",
+  "reviews": [
+    {
+      "body": "Found an eligibility bug that can select draft, void, and already-paid invoices for payment reminders, plus missing coverage for the new endpoint. The existing 7 tests and TypeScript check pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:55:28Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nA null `paid_at` does not mean an invoice is awaiting payment. New invoices default to `draft`, transitioning to `void` leaves `paid_at` null, and the migration adding `paid_at` does not backfill older `paid` invoices. Once their due dates pass, all of these enter this list, so the reminder job can email customers about unsent, cancelled, or already-paid invoices. Require `i.status = 'sent'` in both the rows and count queries so only outstanding invoices are eligible.",
+      "line": 86,
+      "path": "src/routes/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe only test file exercises invoice helpers; no test calls this endpoint or checks its SQL selection. Add endpoint coverage for eligible sent invoices, exclusion of draft/void/paid invoices (including paid rows with null `paid_at`), yesterday versus today's due date, and pagination with tied due dates and a matching total. These cases are needed to verify the reminder job's recipient list and page traversal.",
+      "line": 78,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37788000948,
+      "conclusion": "success",
+      "created": "2026-10-08T13:53:43Z",
+      "updated": "2026-10-08T13:55:43Z"
+    }
+  ]
+}

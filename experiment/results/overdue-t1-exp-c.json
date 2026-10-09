@@ -1,0 +1,35 @@
+{
+  "scenario": "overdue",
+  "trial": 1,
+  "arm": "exp-c",
+  "number": 43,
+  "url": "https://github.com/terzioglub/invoices-api/pull/43",
+  "reviews": [
+    {
+      "body": "Found an overdue-selection bug that would make paid, void, and draft invoices eligible for reminder emails, plus missing endpoint test coverage. The seven existing tests and TypeScript checks pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:37:54Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nA null `paid_at` does not mean an invoice is overdue: paid invoices from before 2025-03-11 legitimately have no timestamp, and draft/void invoices also match. Running this query on production returns 2,056 paid, 636 void and 14 draft invoices alongside 465 sent invoices; the default first page contains 24 paid invoices and one void invoice. The reminder job would send payment requests for settled, cancelled or unsent invoices. Use `i.status = 'sent' and i.due_date < current_date` in both the rows query and the count query.",
+      "line": 86,
+      "path": "src/routes/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nAdd endpoint-level tests for `GET /invoices/overdue`. The only test file, `test/invoices.test.ts`, exercises calculation, transition and serialization helpers, so none of the seven passing tests checks this new selection or pagination logic. Cover overdue sent invoices, exclusion of draft/void/paid invoices (including paid rows with null `paid_at`), dates equal to today or in the future, oldest-first ordering with tied dates, and page contents/total.",
+      "line": 78,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37785597930,
+      "conclusion": "success",
+      "created": "2026-10-08T13:35:49Z",
+      "updated": "2026-10-08T13:38:08Z"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "scenario": "search",
+  "trial": 2,
+  "arm": "exp-c",
+  "number": 52,
+  "url": "https://github.com/terzioglub/invoices-api/pull/52",
+  "reviews": [
+    {
+      "body": "Found one P2 test-coverage gap in the new search endpoint. All 9 tests and typechecking pass; the optional query parameter is compatible with the current invoices-web client.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:47:54Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new tests only check the string returned by `containsPattern`; none call `GET /invoices` or exercise the SQL filter and count. Removing customer-name matching or dropping the search predicate from the count query would still leave every test green. Add endpoint tests for case-insensitive partial matches on both fields, literal `%`/`_`, combined `q`/`status`/`customer_id` filters, and a paginated result whose `total` includes only matches.",
+      "line": 65,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37786829926,
+      "conclusion": "success",
+      "created": "2026-10-08T13:45:02Z",
+      "updated": "2026-10-08T13:48:16Z"
+    }
+  ]
+}

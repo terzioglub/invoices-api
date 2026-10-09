@@ -1,0 +1,35 @@
+{
+  "scenario": "overdue",
+  "trial": 3,
+  "arm": "exp-c",
+  "number": 67,
+  "url": "https://github.com/terzioglub/invoices-api/pull/67",
+  "reviews": [
+    {
+      "body": "Found a reminder-selection bug affecting existing production invoices and missing test coverage for the new endpoint. All seven existing tests and TypeScript checks pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:56:45Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\n`paid_at is null` does not mean an invoice is unpaid: paid invoices from before the column was added have no timestamp, and draft/void invoices also satisfy this predicate. Running this selection against production returns 2,056 paid, 636 void, and 14 draft invoices alongside 465 sent invoices. The reminder job will therefore email customers about already-paid, cancelled, or unsent invoices. Use `i.status = 'sent' and i.due_date < current_date` in both the data and count queries.",
+      "line": 86,
+      "path": "src/routes/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new endpoint has no test coverage; the only test file exercises library helpers, so all seven tests pass despite the incorrect reminder selection. Add route tests for past-due sent invoices, due-today/future invoices, draft/void invoices, and legacy paid invoices with null `paid_at`, plus oldest-first ordering and pagination totals.",
+      "line": 78,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37788014376,
+      "conclusion": "success",
+      "created": "2026-10-08T13:53:49Z",
+      "updated": "2026-10-08T13:57:14Z"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "scenario": "search",
+  "trial": 2,
+  "arm": "exp-a",
+  "number": 50,
+  "url": "https://github.com/terzioglub/invoices-api/pull/50",
+  "reviews": [
+    {
+      "body": "Found one P2 test-coverage gap in the new invoice search endpoint. All 9 tests and TypeScript typechecking pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:46:30Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new tests only exercise `containsPattern`; none calls `GET /invoices` or checks the SQL filtering and count. Removing the search predicate or omitting it from the count query would still leave every test passing. Add endpoint tests against Postgres covering case-insensitive matches on both fields, literal `%`/`_`/backslashes, combinations with `status` and `customer_id`, and matching `total` across pages (including no matches and omitted `q`).",
+      "line": 65,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37786814938,
+      "conclusion": "success",
+      "created": "2026-10-08T13:44:55Z",
+      "updated": "2026-10-08T13:46:43Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "scenario": "overdue",
+  "trial": 2,
+  "arm": "exp-a",
+  "number": 53,
+  "url": "https://github.com/terzioglub/invoices-api/pull/53",
+  "reviews": [
+    {
+      "body": "The overdue endpoint includes invoices that are not eligible for payment reminders, and the new endpoint has no test coverage. The existing seven tests and TypeScript typecheck pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:47:51Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nFilter reminder candidates by invoice status in both queries. Newly created drafts and invoices transitioned to `void` retain a null `paid_at`, so they appear here once their due date passes. Historical `paid` invoices also match: `20250311101500_add_invoice_paid_at.sql` adds the nullable column without backfilling existing payments. The reminder job will therefore email customers about unsent, cancelled, or already-paid invoices. Restrict both the rows and count queries to `status = 'sent'` instead of using a missing payment timestamp as the eligibility check.",
+      "line": 86,
+      "path": "src/routes/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nAdd tests for the new endpoint. `test/invoices.test.ts` only exercises helpers, so the passing suite never checks overdue selection or pagination. Cover status eligibility (including legacy paid invoices with null `paid_at`), exclusion of invoices due today or later, oldest-first ordering with tied dates, and page contents/total. These determine which customers the reminder job contacts.",
+      "line": 78,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37786833803,
+      "conclusion": "success",
+      "created": "2026-10-08T13:45:04Z",
+      "updated": "2026-10-08T13:48:13Z"
+    }
+  ]
+}

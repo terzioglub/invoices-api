@@ -1,0 +1,40 @@
+{
+  "scenario": "finish-cents",
+  "trial": 3,
+  "arm": "exp-c",
+  "number": 73,
+  "url": "https://github.com/terzioglub/invoices-api/pull/73",
+  "reviews": [
+    {
+      "body": "Found two P0 blockers: the backfill would write incorrect cent totals for 20 paid legacy invoices, and removing `amount` breaks the deployed frontend. `npm test` (7 tests) and `npm run typecheck` pass; the new backfill has no regression coverage.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T14:00:15Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nProduction has 20 paid legacy invoices with positive stored `amount` and no line items. This expression backfills all 20 as `0`, so the new API reports zero for invoices that were already billed and paid. Backfill from the billed value, `round(i.amount * 100)`, instead of reconstructing it from line items.\n\nThis read-only check returns **20**:\n```sql\nselect count(*) as incorrect_backfills\nfrom public.invoices i\nwhere i.amount_cents is null\n  and coalesce((\n    select sum(round(l.quantity * l.unit_price * 100))\n    from public.line_items l\n    where l.invoice_id = i.id\n  ), 0) <> round(i.amount * 100);\n```",
+      "line": 2,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    },
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nThe synced `invoices-web` main still declares `amount` in `lib/api.ts:13` and renders it in `components/invoice-table.tsx:34` and `app/invoices/[id]/page.tsx:72`. Removing it makes invoice lists, customer invoice tables, and invoice detail totals render `$NaN`. This combines the backfill (phase 2) with removal (phase 4) before the frontend cutover (phase 3), and no matching frontend PR is linked. Keep `amount` selected and serialized for this backfill PR; after it is deployed, add `amount_cents` alongside it and ship the linked frontend migration before removing the old field.",
+      "line": 55,
+      "path": "src/lib/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe updated serializer test supplies an already-populated `amount_cents`; it never exercises the new backfill or `NOT NULL` constraint. Add migration regression coverage for a legacy invoice with a nonzero billed amount and no line items, an invoice whose stored amount differs from its line-item total, and an invoice with existing cents. Assert that legacy cents match `round(amount * 100)`, existing cents stay unchanged, and no nulls remain.",
+      "line": 1,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37788530228,
+      "conclusion": "success",
+      "created": "2026-10-08T13:57:37Z",
+      "updated": "2026-10-08T14:00:34Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "scenario": "overdue",
+  "trial": 1,
+  "arm": "exp-a",
+  "number": 41,
+  "url": "https://github.com/terzioglub/invoices-api/pull/41",
+  "reviews": [
+    {
+      "body": "Found an overdue-eligibility bug that can cause incorrect payment reminders, plus missing coverage for the new endpoint. All seven existing tests and the TypeScript check pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:37:54Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nRequire `i.status = 'sent'` in both the results and count queries. Creating a past-due draft or voiding an unpaid sent invoice leaves `paid_at` null, so this endpoint returns invoices that were never sent or are no longer collectible. Historical `status = 'paid'` invoices also match: `20250311101500_add_invoice_paid_at.sql` adds the nullable column without backfilling existing payments. The reminder job will therefore send payment demands for these invoices even though they are not outstanding. Checking the collectible status excludes all three cases.",
+      "line": 86,
+      "path": "src/routes/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nAdd regression tests for this endpoint. The existing seven tests only exercise invoice helpers; none executes the new handler or its SQL. Cover overdue sent invoices, exclusion of draft/void and historical paid invoices with null `paid_at`, the due-today boundary, and oldest-first pagination with matching totals. Without this coverage, the reminder job's eligibility and pagination rules can regress while the suite stays green.",
+      "line": 78,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37785584919,
+      "conclusion": "success",
+      "created": "2026-10-08T13:35:44Z",
+      "updated": "2026-10-08T13:38:12Z"
+    }
+  ]
+}

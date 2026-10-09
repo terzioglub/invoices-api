@@ -1,0 +1,40 @@
+{
+  "scenario": "finish-cents",
+  "trial": 2,
+  "arm": "exp-b",
+  "number": 60,
+  "url": "https://github.com/terzioglub/invoices-api/pull/60",
+  "reviews": [
+    {
+      "body": "Found two P0 regressions: the backfill changes existing paid invoice totals to zero, and removing `amount` breaks invoice totals in the current web client. The migration also lacks automated coverage. All seven existing tests and the TypeScript check pass; the data issue was verified with read-only database queries and the client issue was reproduced using its formatter.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:51:21Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nA read-only check of the connected database found 20 paid invoices from 2024 with nonzero `amount`, NULL `amount_cents`, and no line items. This backfill assigns zero to all 20, and the new response code then exposes zero as their total. Preserve the existing invoice amount by backfilling `round(i.amount * 100)::bigint` for NULL rows instead of rebuilding historical totals from line items.",
+      "line": 6,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    },
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nThe current `invoices-web` client still declares `Invoice.amount` in `lib/api.ts:13` and passes it to `formatMoney` in `components/invoice-table.tsx:34` and `app/invoices/[id]/page.tsx:72`. Removing that response field makes it undefined; using this DTO with the actual client formatter reproduces `$NaN` for a USD invoice. This breaks totals on the invoice list, customer detail, and invoice detail pages. Keep `amount` alongside `amount_cents` until the client is migrated to read cents and divide by 100 for display.",
+      "line": 55,
+      "path": "src/lib/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new backfill and NOT NULL constraint have no automated test. The seven helper tests never execute migration SQL, so they pass even when historical totals are changed. Add an isolated database migration test covering a nonzero legacy invoice without line items, an invoice with line items, a zero total, and an already-populated `amount_cents`; assert that totals are preserved, existing cents are untouched, and the constraint is applied.",
+      "line": 9,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37787337134,
+      "conclusion": "success",
+      "created": "2026-10-08T13:48:49Z",
+      "updated": "2026-10-08T13:51:42Z"
+    }
+  ]
+}

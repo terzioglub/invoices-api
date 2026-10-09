@@ -1,0 +1,40 @@
+{
+  "scenario": "finish-cents",
+  "trial": 1,
+  "arm": "exp-c",
+  "number": 49,
+  "url": "https://github.com/terzioglub/invoices-api/pull/49",
+  "reviews": [
+    {
+      "body": "Found two P0 issues: the backfill writes incorrect cents amounts for 20 production invoices, and removing `amount` breaks the current invoices-web money displays by skipping the frontend rollout phase. There is also a P2 gap in migration regression coverage. All 7 existing tests and the typecheck pass; the data findings were verified with read-only production queries.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:43:05Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nBackfill from the stored billed amount, not the line items. A read-only production check found **20 paid invoices** with nonzero `amount`, null `amount_cents`, and no line items. This expression writes `0` for all 20, so the migration succeeds but stores incorrect monetary values. Use `set amount_cents = round(i.amount * 100)` for the null rows.\n\nThis query returns `20`:\n```sql\nselect count(*) as incorrect_backfills\nfrom public.invoices i\nwhere i.amount_cents is null\n  and coalesce((\n    select sum(round(l.quantity * l.unit_price * 100))\n    from public.line_items l\n    where l.invoice_id = i.id\n  ), 0) <> round(i.amount * 100);\n```",
+      "line": 2,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    },
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nRemoving `amount` breaks the current invoices-web deployment. Its `lib/api.ts:13` still requires `amount`; `components/invoice-table.tsx:34` and `app/invoices/[id]/page.tsx:72` pass `invoice.amount` to `formatMoney`. With this DTO, that value is `undefined` and renders as `$NaN`, affecting the invoice list, customer invoice tables, and invoice detail totals.\n\nThis PR combines the phase-2 backfill with phase-4 removal before phase 3 has shipped, and its description links no matching frontend PR. Keep `amount` in the queries and DTO for phase 2. Then ship both response fields with the frontend switch to `amount_cents / 100` in phase 3, and remove `amount` only after that deployment.",
+      "line": 55,
+      "path": "src/lib/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe updated fixture only checks serialization of an already-populated cents value; no test exercises the new backfill or `NOT NULL` migration. Add migration regression tests for a legacy invoice with a nonzero stored amount and no line items, and for an invoice whose billed amount differs from its line-item sum. Assert that the backfill preserves `round(amount * 100)` and that the constraint can be applied.",
+      "line": 50,
+      "path": "test/invoices.test.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37786138841,
+      "conclusion": "success",
+      "created": "2026-10-08T13:39:55Z",
+      "updated": "2026-10-08T13:43:27Z"
+    }
+  ]
+}

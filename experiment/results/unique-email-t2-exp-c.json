@@ -1,0 +1,40 @@
+{
+  "scenario": "unique-email",
+  "trial": 2,
+  "arm": "exp-c",
+  "number": 79,
+  "url": "https://github.com/terzioglub/invoices-api/pull/79",
+  "reviews": [
+    {
+      "body": "The migration fails against current production data: 37 duplicate lower(email) groups involve 74 customer rows. The new conflict response also needs handling in invoices-web, and the customer-route behavior needs regression coverage. Typechecking and all 9 existing tests pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T14:16:06Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nProduction has 37 duplicate `lower(email)` groups involving 74 of 2,000 customer rows, so this index creation fails and aborts the migration. Resolve those duplicates before creating the index; if records are merged, preserve their invoice references. Lowercasing alone does not resolve the collisions.\n\nRead-only check:\n```sql\nselect count(*) as groups, coalesce(sum(n), 0) as rows\nfrom (select lower(email), count(*) as n\n      from public.customers group by lower(email)\n      having count(*) > 1) d;\n```",
+      "line": 1,
+      "path": "supabase/migrations/20261008100000_unique_customer_email.sql"
+    },
+    {
+      "body": "🟠 **P1** · ⚠️ **Error handling**\n\nSubmitting an existing email through invoices-web now throws `ApiError` from `lib/api.ts:78–81`, and `app/customers/actions.ts:9–13` lets it escape. The form in `app/customers/new/page.tsx:9` has no error state, so this expected validation failure reaches the generic error boundary instead of letting the user correct the email. Link and ship a matching web change that catches 409 and returns a form error before or alongside this API change.",
+      "line": 62,
+      "path": "src/routes/customers.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new tests exercise only `isUniqueViolation`; no test sends a request through either customer route. Add route coverage for lowercasing on POST/PATCH, case-insensitive conflicts returning the documented 409 body, updating a customer's own email without a conflict, and non-unique database errors still reaching the 500 handler. These behaviors can regress while every current test stays green.",
+      "line": 16,
+      "path": "src/routes/customers.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37790682788,
+      "conclusion": "success",
+      "created": "2026-10-08T14:13:20Z",
+      "updated": "2026-10-08T14:16:24Z"
+    }
+  ]
+}

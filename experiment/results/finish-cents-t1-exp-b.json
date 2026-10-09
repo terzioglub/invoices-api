@@ -1,0 +1,40 @@
+{
+  "scenario": "finish-cents",
+  "trial": 1,
+  "arm": "exp-b",
+  "number": 48,
+  "url": "https://github.com/terzioglub/invoices-api/pull/48",
+  "reviews": [
+    {
+      "body": "Found two release-blocking bugs and a migration test gap. Read-only database checks confirm that the backfill would zero 20 existing paid invoices, and the current invoices-web consumer renders the new response as `$NaN`. All 7 tests and `npm run typecheck` pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:42:33Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nThe database contains 20 paid invoices from 2024 with nonzero `amount`, null `amount_cents`, and no line items. For each, the subquery returns NULL and this fallback persists zero; all invoice responses then report a zero total instead of the recorded paid amount. Backfill from the authoritative stored total, `round(i.amount * 100)::bigint`, rather than reconstructing it from optional line items.",
+      "line": 6,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    },
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nThe current `invoices-web` client still declares `Invoice.amount` in `lib/api.ts`; `components/invoice-table.tsx:34` and `app/invoices/[id]/page.tsx:72` pass that field to `formatMoney`. Removing it makes `invoice.amount` undefined, so invoice lists, customer invoice tables, and invoice-detail totals display `$NaN` (reproduced with this DTO and the frontend formatter). Coordinate the frontend change to read `amount_cents / 100`, retaining the legacy `amount` field until that consumer has switched.",
+      "line": 55,
+      "path": "src/lib/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nNone of the 7 tests executes the new backfill or checks the NOT NULL constraint; the updated test only serializes a pre-populated DTO. Add a migration integration test with legacy invoices without line items, invoices with line items, and already-populated `amount_cents`. Assert that historical totals and existing cents remain intact and that the final column rejects NULL.",
+      "line": 9,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37786134181,
+      "conclusion": "success",
+      "created": "2026-10-08T13:39:53Z",
+      "updated": "2026-10-08T13:42:47Z"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "scenario": "search",
+  "trial": 1,
+  "arm": "exp-a",
+  "number": 38,
+  "url": "https://github.com/terzioglub/invoices-api/pull/38",
+  "reviews": [
+    {
+      "body": "One P2 finding: the search endpoint lacks regression coverage for matching, combined filters, and pagination totals. `npm test` (9 tests) and `npm run typecheck` both pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:37:12Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new tests only check `containsPattern`; none exercise `GET /invoices`. Removing the customer-name branch or omitting the search filter from the count query would still leave all tests passing. Add endpoint/database tests for case-insensitive partial matches on both fields, literal `%`/`_` matching, combining `q` with `status` and `customer_id`, and filtered totals across pages, including no matches.",
+      "line": 65,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37785567264,
+      "conclusion": "success",
+      "created": "2026-10-08T13:35:36Z",
+      "updated": "2026-10-08T13:37:27Z"
+    }
+  ]
+}

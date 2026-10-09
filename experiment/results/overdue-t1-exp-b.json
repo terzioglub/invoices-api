@@ -1,0 +1,35 @@
+{
+  "scenario": "overdue",
+  "trial": 1,
+  "arm": "exp-b",
+  "number": 42,
+  "url": "https://github.com/terzioglub/invoices-api/pull/42",
+  "reviews": [
+    {
+      "body": "Found a reminder-eligibility bug and missing endpoint test coverage. Typecheck and all 7 existing tests pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:38:54Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\n`paid_at IS NULL` does not mean an invoice is awaiting payment: the migration adds this nullable column without backfilling existing paid invoices, and drafts and void invoices also retain null. A read-only check of this predicate matches 2,056 paid invoices, 636 void invoices, and 14 drafts; the default first page contains 24 paid invoices and one void invoice. The reminder job would therefore email customers about settled or canceled invoices and unsent drafts. Restrict both the row query and the count query to reminder-eligible `status = 'sent'` invoices rather than inferring payment status from the timestamp.",
+      "line": 86,
+      "path": "src/routes/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new endpoint has no test coverage; the existing seven tests only exercise invoice helpers, so they pass despite the incorrect eligibility filter. Add endpoint tests for overdue sent invoices, exclusion of paid invoices with null `paid_at`, drafts and void invoices, the due-today boundary, and pagination with equal due dates and matching totals.",
+      "line": 78,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37785591137,
+      "conclusion": "success",
+      "created": "2026-10-08T13:35:46Z",
+      "updated": "2026-10-08T13:39:20Z"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "search": {
+    "title": "Search invoices by number or customer name",
+    "body": "Adds a `q` parameter to `GET /invoices` that searches invoice numbers and customer names (case-insensitive, partial match). `%` and `_` in the search term are matched literally. The total count uses the same filter, so pagination stays right.\n\nExample: `GET /invoices?q=INV-00012` returns INV-000120 to INV-000129."
+  },
+  "overdue": {
+    "title": "List overdue invoices for payment reminders",
+    "body": "Adds `GET /invoices/overdue`: invoices that are past their due date and haven't been paid, oldest first, paginated like the other lists.\n\nThe payment-reminder job will page through this endpoint to decide who gets a reminder email."
+  },
+  "unique-email": {
+    "title": "Make customer emails unique, case-insensitive",
+    "body": "- Adds a unique index on `lower(email)`.\n- Stores emails lower-case.\n- `POST /customers` and `PATCH /customers/:id` return 409 when the email is already taken."
+  },
+  "finish-cents": {
+    "title": "Finish moving invoice amounts to cents",
+    "body": "Finishes moving invoice amounts to integer cents, so we stop doing float math on money.\n\n- Backfills `amount_cents` for existing invoices and makes it `NOT NULL`.\n- Every invoice response returns `amount_cents` instead of `amount`.\n\nNew invoices already write `amount_cents` (since the `add_invoice_amount_cents` migration)."
+  }
+}

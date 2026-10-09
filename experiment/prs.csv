@@ -1,0 +1,37 @@
+scenario,trial,reviewer,base_branch,pr,url
+search,1,prompt only,exp-a,38,https://github.com/terzioglub/invoices-api/pull/38
+search,1,prompt + access,exp-b,39,https://github.com/terzioglub/invoices-api/pull/39
+search,1,prompt + access + team skills,exp-c,40,https://github.com/terzioglub/invoices-api/pull/40
+overdue,1,prompt only,exp-a,41,https://github.com/terzioglub/invoices-api/pull/41
+overdue,1,prompt + access,exp-b,42,https://github.com/terzioglub/invoices-api/pull/42
+overdue,1,prompt + access + team skills,exp-c,43,https://github.com/terzioglub/invoices-api/pull/43
+finish-cents,1,prompt only,exp-a,47,https://github.com/terzioglub/invoices-api/pull/47
+finish-cents,1,prompt + access,exp-b,48,https://github.com/terzioglub/invoices-api/pull/48
+finish-cents,1,prompt + access + team skills,exp-c,49,https://github.com/terzioglub/invoices-api/pull/49
+search,2,prompt only,exp-a,50,https://github.com/terzioglub/invoices-api/pull/50
+search,2,prompt + access,exp-b,51,https://github.com/terzioglub/invoices-api/pull/51
+search,2,prompt + access + team skills,exp-c,52,https://github.com/terzioglub/invoices-api/pull/52
+overdue,2,prompt only,exp-a,53,https://github.com/terzioglub/invoices-api/pull/53
+overdue,2,prompt + access,exp-b,54,https://github.com/terzioglub/invoices-api/pull/54
+overdue,2,prompt + access + team skills,exp-c,55,https://github.com/terzioglub/invoices-api/pull/55
+finish-cents,2,prompt only,exp-a,59,https://github.com/terzioglub/invoices-api/pull/59
+finish-cents,2,prompt + access,exp-b,60,https://github.com/terzioglub/invoices-api/pull/60
+finish-cents,2,prompt + access + team skills,exp-c,61,https://github.com/terzioglub/invoices-api/pull/61
+search,3,prompt only,exp-a,62,https://github.com/terzioglub/invoices-api/pull/62
+search,3,prompt + access,exp-b,63,https://github.com/terzioglub/invoices-api/pull/63
+search,3,prompt + access + team skills,exp-c,64,https://github.com/terzioglub/invoices-api/pull/64
+overdue,3,prompt only,exp-a,65,https://github.com/terzioglub/invoices-api/pull/65
+overdue,3,prompt + access,exp-b,66,https://github.com/terzioglub/invoices-api/pull/66
+overdue,3,prompt + access + team skills,exp-c,67,https://github.com/terzioglub/invoices-api/pull/67
+finish-cents,3,prompt only,exp-a,71,https://github.com/terzioglub/invoices-api/pull/71
+finish-cents,3,prompt + access,exp-b,72,https://github.com/terzioglub/invoices-api/pull/72
+finish-cents,3,prompt + access + team skills,exp-c,73,https://github.com/terzioglub/invoices-api/pull/73
+unique-email,1,prompt only,exp-a,74,https://github.com/terzioglub/invoices-api/pull/74
+unique-email,1,prompt + access,exp-b,75,https://github.com/terzioglub/invoices-api/pull/75
+unique-email,1,prompt + access + team skills,exp-c,76,https://github.com/terzioglub/invoices-api/pull/76
+unique-email,2,prompt only,exp-a,77,https://github.com/terzioglub/invoices-api/pull/77
+unique-email,2,prompt + access,exp-b,78,https://github.com/terzioglub/invoices-api/pull/78
+unique-email,2,prompt + access + team skills,exp-c,79,https://github.com/terzioglub/invoices-api/pull/79
+unique-email,3,prompt only,exp-a,80,https://github.com/terzioglub/invoices-api/pull/80
+unique-email,3,prompt + access,exp-b,81,https://github.com/terzioglub/invoices-api/pull/81
+unique-email,3,prompt + access + team skills,exp-c,82,https://github.com/terzioglub/invoices-api/pull/82

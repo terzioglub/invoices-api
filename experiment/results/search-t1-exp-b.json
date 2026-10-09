@@ -1,0 +1,30 @@
+{
+  "scenario": "search",
+  "trial": 1,
+  "arm": "exp-b",
+  "number": 39,
+  "url": "https://github.com/terzioglub/invoices-api/pull/39",
+  "reviews": [
+    {
+      "body": "Found one P2 test-coverage gap in the new search endpoint. All 9 tests and the typecheck pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:38:19Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new endpoint filtering and count-query logic have no regression tests: `test/search.test.ts` only checks the string returned by `containsPattern`. Those tests would still pass if this predicate stopped matching customer names or the count query lost its search filter. Add endpoint tests against Postgres covering case-insensitive partial matches on both fields, literal `%`/`_`/backslash matching, combined status/customer filters, and a multi-page result with the correct filtered `total`.",
+      "line": 65,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37785572050,
+      "conclusion": "success",
+      "created": "2026-10-08T13:35:38Z",
+      "updated": "2026-10-08T13:38:48Z"
+    }
+  ]
+}

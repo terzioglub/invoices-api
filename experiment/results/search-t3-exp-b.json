@@ -1,0 +1,30 @@
+{
+  "scenario": "search",
+  "trial": 3,
+  "arm": "exp-b",
+  "number": 63,
+  "url": "https://github.com/terzioglub/invoices-api/pull/63",
+  "reviews": [
+    {
+      "body": "Found one P2 test-coverage gap in the new search endpoint. All 9 tests and the TypeScript check pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:55:31Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new tests only assert the escaped string; none exercise `GET /invoices`. Removing the SQL search predicate or the customer join in the count query would still leave the suite green, so matching and pagination have no regression coverage. Add endpoint tests against seeded PostgreSQL data for invoice-number/customer-name matches (including mixed case and literal wildcards), combined filters, and a paginated result whose `total` exceeds the page size.",
+      "line": 5,
+      "path": "test/search.test.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37787990450,
+      "conclusion": "success",
+      "created": "2026-10-08T13:53:38Z",
+      "updated": "2026-10-08T13:55:46Z"
+    }
+  ]
+}

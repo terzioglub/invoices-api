@@ -1,0 +1,35 @@
+{
+  "scenario": "unique-email",
+  "trial": 3,
+  "arm": "exp-a",
+  "number": 80,
+  "url": "https://github.com/terzioglub/invoices-api/pull/80",
+  "reviews": [
+    {
+      "body": "Found a migration rollout issue for existing duplicate emails and missing endpoint coverage for the new behavior. `npm test` (9 tests) and `npm run typecheck` pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T14:18:58Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nThe existing schema and customer POST route allow multiple customers with the same email, including case-only variants. On a database containing two such rows, this statement fails with SQLSTATE `23505`, aborting `scripts/migrate.ts` without installing the uniqueness protection. Add a rollout step that reconciles existing `lower(email)` collisions while preserving invoice `customer_id` references before creating the index.",
+      "line": 1,
+      "path": "supabase/migrations/20261008100000_unique_customer_email.sql"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThese tests only check SQLSTATE classification; none exercises the new customer behavior. Add endpoint/database tests for lower-case storage, case-insensitive conflicts returning 409 on both POST and PATCH, and PATCH retaining its own email successfully. The current suite would still pass if normalization or either conflict handler stopped working.",
+      "line": 5,
+      "path": "test/db-errors.test.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37791151123,
+      "conclusion": "success",
+      "created": "2026-10-08T14:16:48Z",
+      "updated": "2026-10-08T14:19:15Z"
+    }
+  ]
+}

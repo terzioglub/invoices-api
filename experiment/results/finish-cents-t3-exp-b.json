@@ -1,0 +1,40 @@
+{
+  "scenario": "finish-cents",
+  "trial": 3,
+  "arm": "exp-b",
+  "number": 72,
+  "url": "https://github.com/terzioglub/invoices-api/pull/72",
+  "reviews": [
+    {
+      "body": "The backfill would zero 20 existing paid invoice totals, and removing `amount` breaks the current web client's amount displays. The migration also lacks regression coverage; `npm test` (7 tests) and `npm run typecheck` pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T14:00:11Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nPreserve the stored total when backfilling historical invoices. A read-only check of the existing data found 20 paid invoices with nonzero `amount`, null `amount_cents`, and no line items. This subquery returns null for all 20, so `coalesce(..., 0)` writes zero and the new DTO exposes those paid invoices as zero-value invoices. Backfill from `round(i.amount * 100)::bigint` so the migration preserves the existing authoritative totals.",
+      "line": 6,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    },
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nMigrate the web consumer before removing `amount`. In `invoices-web`, `lib/api.ts` still declares `Invoice.amount`, and both `components/invoice-table.tsx:34` and `app/invoices/[id]/page.tsx:72` pass `invoice.amount` to `formatMoney`. With this DTO that value is undefined, which renders `$NaN` for USD on the invoice list, customer invoice list, and invoice detail total. Update and coordinate deployment of those consumers to use `amount_cents / 100`, or retain a compatible `amount` field during the transition.",
+      "line": 55,
+      "path": "src/lib/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nAdd regression coverage for the migration. The only changed test serializes a hand-built `InvoiceRow`; none of the seven tests executes the backfill or the new `NOT NULL` constraint. Add a database-backed migration test with historical invoices with and without line items, plus an invoice with existing `amount_cents`, and assert that totals are preserved, existing cents remain unchanged, and invoice creation succeeds after the constraint is applied.",
+      "line": 9,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37788524615,
+      "conclusion": "success",
+      "created": "2026-10-08T13:57:34Z",
+      "updated": "2026-10-08T14:00:47Z"
+    }
+  ]
+}

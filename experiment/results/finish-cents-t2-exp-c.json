@@ -1,0 +1,40 @@
+{
+  "scenario": "finish-cents",
+  "trial": 2,
+  "arm": "exp-c",
+  "number": 61,
+  "url": "https://github.com/terzioglub/invoices-api/pull/61",
+  "reviews": [
+    {
+      "body": "Found two P0 issues: the backfill would write incorrect totals for 20 production invoices, and removing `amount` breaks the deployed web client's amount displays by skipping the consumer rollout. The migration also lacks regression coverage (P2). All seven existing tests and the TypeScript check pass; production checks used read-only SELECTs.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:51:27Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nBackfill from the stored billed amount, not line items. A read-only comparison across all 10,001 production invoices found **20 mismatches**: invoices with nonzero stored amounts and no line items. This migration sets their `amount_cents` to zero, and the changed API then reports those incorrect totals. Use `set amount_cents = round(i.amount * 100)` while retaining the null-only predicate.\n\nReproduce the count with:\n```sql\nselect count(*) as mismatches\nfrom public.invoices i\nwhere i.amount_cents is null\n  and coalesce((\n    select sum(round(l.quantity * l.unit_price * 100))\n    from public.line_items l\n    where l.invoice_id = i.id\n  ), 0) <> round(i.amount * 100);\n```",
+      "line": 3,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    },
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nKeep `amount` until the web consumer has migrated and deployed. On the synced invoices-web `main`, `lib/api.ts:13` still requires `amount`; `components/invoice-table.tsx:34` and `app/invoices/[id]/page.tsx:72` pass `invoice.amount` to `formatMoney`. Removing it makes invoice lists, customer invoice tables, and invoice detail totals display `$NaN` (or the currency equivalent). This combines the phase-2 backfill with phase-4 removal before phase 3, and the description links no deployed consumer change. Keep this PR to the backfill; introduce `amount_cents` additively alongside `amount` for the consumer rollout, then remove `amount` in a later phase after invoices-web has deployed.",
+      "line": 55,
+      "path": "src/lib/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nAdd regression coverage for the backfill itself. The only test file exercises TypeScript helpers, so the seven passing tests never execute this SQL or verify its null-only update and NOT NULL constraint. Add a local migration test with a nonzero billed amount and no line items, line items whose sum differs from the billed amount, and an already-populated `amount_cents`; assert that missing cents come from the stored amount, populated cents stay unchanged, and no nulls remain.",
+      "line": 7,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37787344770,
+      "conclusion": "success",
+      "created": "2026-10-08T13:48:53Z",
+      "updated": "2026-10-08T13:51:46Z"
+    }
+  ]
+}

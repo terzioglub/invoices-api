@@ -1,0 +1,35 @@
+{
+  "scenario": "unique-email",
+  "trial": 1,
+  "arm": "exp-b",
+  "number": 75,
+  "url": "https://github.com/terzioglub/invoices-api/pull/75",
+  "reviews": [
+    {
+      "body": "Found two issues: the migration cannot be applied to the current data, and the new customer endpoint behavior lacks regression tests. All 9 existing tests and TypeScript checking pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T14:15:48Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nThe current database has 37 duplicate `lower(email)` groups covering 74 customers, confirmed with a read-only aggregate query. This index creation will raise `23505`, so `scripts/migrate.ts` rolls back the migration and email uniqueness cannot be deployed. Resolve the existing duplicates before creating the index; these customers have 378 linked invoices, so any merge must reassign the invoice foreign keys before removing redundant customer rows.",
+      "line": 1,
+      "path": "supabase/migrations/20261008100000_unique_customer_email.sql"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new tests exercise only `isUniqueViolation`; neither customer endpoint nor the lowercase transform is covered. They would still pass if normalization were removed or either route stopped returning 409. Add request-level regression tests for lowercase persistence on POST/PATCH, case-insensitive conflicts on both routes, updating a customer's own email without a false conflict, and preserving 404/non-unique error handling.",
+      "line": 62,
+      "path": "src/routes/customers.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37790653900,
+      "conclusion": "success",
+      "created": "2026-10-08T14:13:08Z",
+      "updated": "2026-10-08T14:16:11Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "scenario": "overdue",
+  "trial": 2,
+  "arm": "exp-b",
+  "number": 54,
+  "url": "https://github.com/terzioglub/invoices-api/pull/54",
+  "reviews": [
+    {
+      "body": "Found an incorrect overdue-eligibility filter and missing coverage for the new endpoint. All 7 existing tests and the TypeScript typecheck pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:47:54Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\n`paid_at IS NULL` does not mean an invoice is awaiting payment. The migration added this nullable column without backfilling historical paid invoices, and drafts and void invoices also leave it null. In the connected database, this predicate returns 2,056 paid invoices, 636 void invoices, and 14 drafts; the first 25 results are exclusively paid or void. The reminder job would therefore email customers about settled, cancelled, or unsent invoices. Restrict both the data and count queries to `i.status = 'sent'`, consistent with the frontend's `isOverdue` rule.",
+      "line": 86,
+      "path": "src/routes/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new endpoint has no tests: the existing suite only exercises invoice helpers, so all seven tests pass despite the eligibility bug above. Add route-level coverage for past-due sent invoices, exclusion of draft/void/paid invoices (including paid rows with null `paid_at`), exclusion of invoices due today, and ordering/pagination with a matching `total`.",
+      "line": 78,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37786837726,
+      "conclusion": "success",
+      "created": "2026-10-08T13:45:05Z",
+      "updated": "2026-10-08T13:48:15Z"
+    }
+  ]
+}

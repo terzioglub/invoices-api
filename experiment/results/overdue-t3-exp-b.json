@@ -1,0 +1,35 @@
+{
+  "scenario": "overdue",
+  "trial": 3,
+  "arm": "exp-b",
+  "number": 66,
+  "url": "https://github.com/terzioglub/invoices-api/pull/66",
+  "reviews": [
+    {
+      "body": "Found a reminder-selection bug and missing test coverage for the new endpoint. Typecheck and all seven existing tests pass, but none exercise `/invoices/overdue`.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:55:43Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nUse invoice status to select reminder-eligible invoices. The `paid_at` migration adds a nullable column without backfilling existing payments, so `paid_at is null` also matches already-paid invoices. A read-only check finds 2,056 past-due paid invoices, 636 void invoices, and 14 drafts matching this predicate; the first default page contains 24 paid invoices and one void invoice. The reminder job would email customers about settled or cancelled invoices and unsent drafts. Filter both the row and count queries to `i.status = 'sent'` while retaining the due-date condition.",
+      "line": 86,
+      "path": "src/routes/invoices.ts"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new endpoint has no test coverage: `test/invoices.test.ts` only exercises existing helper functions. Add endpoint tests covering a past-due sent invoice, a paid invoice with null `paid_at`, draft/void exclusions, invoices due today, and multi-page ordering with matching totals. These cases would catch the incorrect reminder selection before the job sends emails.",
+      "line": 78,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37788008232,
+      "conclusion": "success",
+      "created": "2026-10-08T13:53:46Z",
+      "updated": "2026-10-08T13:55:56Z"
+    }
+  ]
+}

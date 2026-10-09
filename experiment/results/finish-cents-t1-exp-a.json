@@ -1,0 +1,35 @@
+{
+  "scenario": "finish-cents",
+  "trial": 1,
+  "arm": "exp-a",
+  "number": 47,
+  "url": "https://github.com/terzioglub/invoices-api/pull/47",
+  "reviews": [
+    {
+      "body": "Found a backfill bug that changes historical invoice totals and missing migration coverage. All 7 existing tests and the TypeScript typecheck pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:44:14Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nBackfill from the stored invoice amount rather than recalculating line items. The pre-cents create endpoint accepts `quantity: 3, unit_price: 0.333`, stores `invoices.amount = 1.00`, and persists the unit price as `0.33` because that column is `numeric(12,2)`. This query writes `99` cents instead of `100`, silently changing the total returned for an already-issued or paid invoice. Use `round(i.amount * 100)::bigint` with the existing null guard; that also preserves historical totals when line items are absent.",
+      "line": 3,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new migration has no test coverage. The updated DTO fixture never executes the backfill or the `NOT NULL` constraint, so the passing suite cannot detect incorrect historical totals or migration failures. Add a database-backed migration test covering null and already-populated cents, zero amounts, and legacy invoices with and without line items. Assert that billed totals are preserved, existing cents remain unchanged, and no nulls remain before the constraint is applied.",
+      "line": 9,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37786129342,
+      "conclusion": "success",
+      "created": "2026-10-08T13:39:50Z",
+      "updated": "2026-10-08T13:44:41Z"
+    }
+  ]
+}

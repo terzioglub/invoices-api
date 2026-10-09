@@ -1,0 +1,30 @@
+{
+  "scenario": "search",
+  "trial": 1,
+  "arm": "exp-c",
+  "number": 40,
+  "url": "https://github.com/terzioglub/invoices-api/pull/40",
+  "reviews": [
+    {
+      "body": "Found one P2 test-coverage gap in the new search endpoint. All 9 tests and TypeScript checking pass; the optional query parameter is compatible with existing invoices-web callers.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:37:35Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new tests only check `containsPattern` output; none exercises `GET /invoices`. Removing either search branch or the search predicate from the count query would still leave every test green. Add endpoint tests against a test database for case-insensitive partial matches on both fields, literal wildcards, combined status/customer filters, and a paginated response whose `total` counts all matching invoices.",
+      "line": 65,
+      "path": "src/routes/invoices.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37785577769,
+      "conclusion": "success",
+      "created": "2026-10-08T13:35:41Z",
+      "updated": "2026-10-08T13:37:53Z"
+    }
+  ]
+}

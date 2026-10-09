@@ -1,0 +1,35 @@
+{
+  "scenario": "finish-cents",
+  "trial": 2,
+  "arm": "exp-a",
+  "number": 59,
+  "url": "https://github.com/terzioglub/invoices-api/pull/59",
+  "reviews": [
+    {
+      "body": "Found a backfill that changes historical invoice totals and missing migration test coverage. All seven unit tests and the TypeScript check pass, but they do not exercise the migration.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T13:52:49Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🔴 **P0** · 🐛 **Bug**\n\nPreserve the stored invoice total when backfilling. The legacy create endpoint accepts a line with `quantity: 2, unit_price: 0.335`: it stores `amount = 0.67`, but the line's `numeric(12, 2)` price becomes `0.34`. This query therefore writes 68 cents instead of 67. A nonzero invoice without line items is also converted to zero. All invoice reads now use this value, so the migration silently changes historical billed/paid amounts. Populate cents from the existing authoritative total with `(i.amount * 100)::bigint`, keeping the null-only filter.",
+      "line": 3,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nAdd regression coverage for this migration. The only updated test passes a prefilled `amount_cents` into the DTO; it never runs the backfill or checks the new constraint. Test legacy totals that differ from their stored line-item sums, invoices without line items, preservation of already-populated cents, and rejection of null cents after migration. The current suite passes despite the historical-total regression above.",
+      "line": 9,
+      "path": "supabase/migrations/20261008110000_backfill_amount_cents.sql"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37787332461,
+      "conclusion": "success",
+      "created": "2026-10-08T13:48:47Z",
+      "updated": "2026-10-08T13:53:17Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "scenario": "unique-email",
+  "trial": 3,
+  "arm": "exp-b",
+  "number": 81,
+  "url": "https://github.com/terzioglub/invoices-api/pull/81",
+  "reviews": [
+    {
+      "body": "Found a migration failure on existing customer data and a gap in coverage for the new endpoint behavior. Read-only database checks confirmed the duplicate email groups; all 9 tests and the TypeScript check pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T14:19:12Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nThe existing database has 37 duplicate `lower(email)` groups involving 74 customers, so this statement fails with a unique violation and `npm run db:migrate` cannot complete. Those customers are referenced by 378 invoices, so deleting duplicate rows is not a safe cleanup. Reconcile the existing duplicates before creating the index, preserve the invoice references, and normalize the retained email values.",
+      "line": 1,
+      "path": "supabase/migrations/20261008100000_unique_customer_email.sql"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe added tests only exercise the error-code helper; none exercise the changed customer handlers or email transform. Removing the lowercasing or either 409 branch would leave all nine tests green. Add request-level tests for lowercase persistence, exact/mixed-case duplicate POST and PATCH requests, and updating a customer to its own email.",
+      "line": 6,
+      "path": "test/db-errors.test.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37791159100,
+      "conclusion": "success",
+      "created": "2026-10-08T14:16:52Z",
+      "updated": "2026-10-08T14:19:28Z"
+    }
+  ]
+}

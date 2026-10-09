@@ -1,0 +1,40 @@
+{
+  "scenario": "unique-email",
+  "trial": 1,
+  "arm": "exp-a",
+  "number": 74,
+  "url": "https://github.com/terzioglub/invoices-api/pull/74",
+  "reviews": [
+    {
+      "body": "Found an upgrade failure for legacy duplicate emails, incomplete normalization of legacy emails, and missing endpoint coverage. All 9 existing tests and the TypeScript check pass.",
+      "state": "COMMENTED",
+      "submitted_at": "2026-10-08T14:15:52Z"
+    }
+  ],
+  "comments": [
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nThe previous schema and customer routes allowed multiple rows with the same email, including case-only differences. If any such rows exist, this index creation fails with a unique violation; `scripts/migrate.ts` aborts and the uniqueness constraint is never installed. Add an upgrade step that reconciles existing `lower(email)` collisions before creating the index, preserving the invoices that reference those customers. Cover this with a migration test starting from duplicate legacy rows.",
+      "line": 1,
+      "path": "supabase/migrations/20261008100000_unique_customer_email.sql"
+    },
+    {
+      "body": "🟠 **P1** · 🐛 **Bug**\n\nCreating an index on `lower(email)` does not lowercase the stored values. Existing mixed-case emails remain unchanged: `toCustomerDto` returns them verbatim, and a PATCH that omits `email` preserves them. Those customers therefore continue returning mixed-case emails after this upgrade despite the stated lowercase-storage behavior. After reconciling collisions, backfill existing emails with `lower(email)` and test upgrading a mixed-case legacy row.",
+      "line": 1,
+      "path": "supabase/migrations/20261008100000_unique_customer_email.sql"
+    },
+    {
+      "body": "🟡 **P2** · 🐛 **Bug**\n\nThe new tests only check the error-code helper; none exercise the changed customer endpoints or the database constraint. Add coverage for lowercase persistence on POST and PATCH, case-insensitive duplicate rejection with HTTP 409 on both endpoints, and updating a customer to its own email without a conflict. The current suite would still pass if the transform, index, or either route's conflict handling were removed.",
+      "line": 5,
+      "path": "test/db-errors.test.ts"
+    }
+  ],
+  "issue_comments": [],
+  "runs": [
+    {
+      "id": 37790648482,
+      "conclusion": "success",
+      "created": "2026-10-08T14:13:05Z",
+      "updated": "2026-10-08T14:16:12Z"
+    }
+  ]
+}
